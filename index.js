@@ -113,10 +113,10 @@ try {
             return
         }
 
-        if (await alreadySentNotification(config, oktokit, pr)) {
+        if (await alreadySentNotification(config, octokit, pr)) {
             return
         } else {
-            await addCommentThatNotificationSent(config, oktokit, pr);
+            await addCommentThatNotificationSent(config, octokit, pr);
         }
 
         message = fillTemplate(payload, config.pr_ready_for_review_format);
