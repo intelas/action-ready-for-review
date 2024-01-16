@@ -93,10 +93,6 @@ const addCommentThatNotificationSent = async (config, pr) => {
             Core.setFailed("SLACK_WEBHOOK is not set. Set it with\nenv:\n\tSLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}\n");
         }
 
-        const octokit = new Octokit({
-            auth: config.github_token,
-        });
-
         const payload = Github.context.payload;
         const review = payload.review;
         const pr = payload.pull_request;
