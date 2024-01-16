@@ -67,72 +67,74 @@ const addCommentThatNotificationSent = async (config, octokit, pr) => {
     });
 };
 
-try {
-    e = process.env;
-    config = {
-        channel: e.SLACK_CHANNEL,
-        hookUrl: e.SLACK_WEBHOOK,
-        ignoreDrafts: e.IGNORE_DRAFTS || true,
-        pr_approved_format: e.PR_APPROVED_FORMAT || DefaultPRApprovedFormat,
-        pr_ready_for_review_format: e.PR_READY_FOR_REVIEW_FORMAT || DefaultPRReadyForReviewFormat,
-        pr_rejected_format: e.PR_REJECTED_FORMAT || DefaultPRChangesRequestedFormat,
-        username: e.USERNAME || 'ReadyForReviewBot',
-        github_token: e.GITHUB_TOKEN,
-        repo_name: e.REPO_NAME,
-    };
+(async () => {
+    try {
+        e = process.env;
+        config = {
+            channel: e.SLACK_CHANNEL,
+            hookUrl: e.SLACK_WEBHOOK,
+            ignoreDrafts: e.IGNORE_DRAFTS || true,
+            pr_approved_format: e.PR_APPROVED_FORMAT || DefaultPRApprovedFormat,
+            pr_ready_for_review_format: e.PR_READY_FOR_REVIEW_FORMAT || DefaultPRReadyForReviewFormat,
+            pr_rejected_format: e.PR_REJECTED_FORMAT || DefaultPRChangesRequestedFormat,
+            username: e.USERNAME || 'ReadyForReviewBot',
+            github_token: e.GITHUB_TOKEN,
+            repo_name: e.REPO_NAME,
+        };
 
-    if (!config.channel) {
-        Core.setFailed("Slack channel is not set. Set it with\nenv:\n\tSLACK_CHANNEL: your-channel");
-    }
-    if (!config.hookUrl) {
-        Core.setFailed("SLACK_WEBHOOK is not set. Set it with\nenv:\n\tSLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}\n");
-    }
-
-    const octokit = new Octokit({
-        auth: config.github_token,
-    })
-
-    const payload = Github.context.payload;
-    const review = payload.review;
-    const pr = payload.pull_request;
-    let message;
-
-    // We don't need to check this at all, because we call slack-notify action only after all checks in our CI.
-    // Feel free to delete this condition in the future.
-    if (!review && !["ready_for_review", "opened", "synchronize", "reopened"].includes(payload.action)) {
-        return
-    }
-
-    const slack = new Slack(config.hookUrl);
-
-    if (review) {
-        if (payload.review.state == "approved") {
-            message = fillTemplate(payload, config.pr_approved_format);
-        } else if (payload.review.state == "changes_requested") {
-            message = fillTemplate(payload, config.pr_rejected_format);
+        if (!config.channel) {
+            Core.setFailed("Slack channel is not set. Set it with\nenv:\n\tSLACK_CHANNEL: your-channel");
         }
-    } else {
-        if (pr.draft && config.ignoreDrafts === true) {
+        if (!config.hookUrl) {
+            Core.setFailed("SLACK_WEBHOOK is not set. Set it with\nenv:\n\tSLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}\n");
+        }
+
+        const octokit = new Octokit({
+            auth: config.github_token,
+        })
+
+        const payload = Github.context.payload;
+        const review = payload.review;
+        const pr = payload.pull_request;
+        let message;
+
+        // We don't need to check this at all, because we call slack-notify action only after all checks in our CI.
+        // Feel free to delete this condition in the future.
+        if (!review && !["ready_for_review", "opened", "synchronize", "reopened"].includes(payload.action)) {
             return
         }
-        
-        const msg = notificationCommentMessage(config);
-        await doNothingTest(config, octokit, pr);
 
-        if (await alreadySentNotification(config, octokit, pr)) {
-            return
+        const slack = new Slack(config.hookUrl);
+
+        if (review) {
+            if (payload.review.state == "approved") {
+                message = fillTemplate(payload, config.pr_approved_format);
+            } else if (payload.review.state == "changes_requested") {
+                message = fillTemplate(payload, config.pr_rejected_format);
+            }
         } else {
-            await addCommentThatNotificationSent(config, octokit, pr);
+            if (pr.draft && config.ignoreDrafts === true) {
+                return
+            }
+            
+            const msg = notificationCommentMessage(config);
+            await doNothingTest(config, octokit, pr);
+
+            if (await alreadySentNotification(config, octokit, pr)) {
+                return
+            } else {
+                await addCommentThatNotificationSent(config, octokit, pr);
+            }
+
+            message = fillTemplate(payload, config.pr_ready_for_review_format);
         }
 
-        message = fillTemplate(payload, config.pr_ready_for_review_format);
+        slack.send({
+            text: message,
+            channel: '#' + config.channel,
+            username: config.username
+        });
+    } catch (error) {
+        Core.setFailed(error.message);
     }
-
-    slack.send({
-        text: message,
-        channel: '#' + config.channel,
-        username: config.username
-    });
-} catch (error) {
-    Core.setFailed(error.message);
-}
+})()
