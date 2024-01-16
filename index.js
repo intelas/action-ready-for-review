@@ -1,7 +1,7 @@
 const Core = require('@actions/core');
 const Github = require('@actions/github');
 const Slack = require('node-slack');
-const { Octokit } = require("@octokit/rest");
+// const { Octokit } = require("@octokit/rest");
 
 const DefaultPRApprovedFormat = `Pull request *{ pull_request.title }* was approved by { review.user.login } :heavy_check_mark:`;
 const DefaultPRChangesRequestedFormat = `Pull request *{ pull_request.title }* was rejected by { review.user.login } :cry:`;
@@ -37,31 +37,31 @@ const notificationCommentMessage = (config) => {
 
 const alreadySentNotification = async (config, octokit, pr) => {
     const notification_body = notificationCommentMessage(config);
-    const comments = await octokit.request('GET /repos/{repo}/issues/{issue_number}/comments/', {
-        repo: config.repo_name,
-        issue_number: pr.number,
-        per_page: 100,
-        headers: {
-            'X-GitHub-Api-Version': '2022-11-28'
-        }
-    });
-    for (let i = 0; i < comments.length; ++i) {
-        if (comments[i].body === notification_body) {
-            return true;
-        }
-    }
+    // const comments = await octokit.request('GET /repos/{repo}/issues/{issue_number}/comments/', {
+    //     repo: config.repo_name,
+    //     issue_number: pr.number,
+    //     per_page: 100,
+    //     headers: {
+    //         'X-GitHub-Api-Version': '2022-11-28'
+    //     }
+    // });
+    // for (let i = 0; i < comments.length; ++i) {
+    //     if (comments[i].body === notification_body) {
+    //         return true;
+    //     }
+    // }
     return false;
 }
 
 const addCommentThatNotificationSent = async (config, octokit, pr) => {
-    await octokit.request('POST /repos/{repo}/issues/{issue_number}/comments', {
-        repo: config.repo_name,
-        issue_number: pr.number,
-        body: notificationCommentMessage(config),
-        headers: {
-            'X-GitHub-Api-Version': '2022-11-28'
-        }
-    });
+    // await octokit.request('POST /repos/{repo}/issues/{issue_number}/comments', {
+    //     repo: config.repo_name,
+    //     issue_number: pr.number,
+    //     body: notificationCommentMessage(config),
+    //     headers: {
+    //         'X-GitHub-Api-Version': '2022-11-28'
+    //     }
+    // });
 };
 
 (async () => {
@@ -86,9 +86,9 @@ const addCommentThatNotificationSent = async (config, octokit, pr) => {
             Core.setFailed("SLACK_WEBHOOK is not set. Set it with\nenv:\n\tSLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}\n");
         }
 
-        const octokit = new Octokit({
-            auth: config.github_token,
-        })
+        // const octokit = new Octokit({
+        //     auth: config.github_token,
+        // });
 
         const payload = Github.context.payload;
         const review = payload.review;
@@ -114,20 +114,20 @@ const addCommentThatNotificationSent = async (config, octokit, pr) => {
                 return
             }
             
-            if (await alreadySentNotification(config, octokit, pr)) {
-                return
-            } else {
-                await addCommentThatNotificationSent(config, octokit, pr);
-            }
+            // if (await alreadySentNotification(config, octokit, pr)) {
+            //     return
+            // } else {
+            //     await addCommentThatNotificationSent(config, octokit, pr);
+            // }
 
             message = fillTemplate(payload, config.pr_ready_for_review_format);
         }
 
-        slack.send({
-            text: message,
-            channel: '#' + config.channel,
-            username: config.username
-        });
+        // slack.send({
+        //     text: message,
+        //     channel: '#' + config.channel,
+        //     username: config.username
+        // });
     } catch (error) {
         Core.setFailed(error.message);
     }
