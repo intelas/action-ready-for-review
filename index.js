@@ -1,7 +1,6 @@
 const Core = require('@actions/core');
 const Github = require('@actions/github');
 const Slack = require('node-slack');
-const { Octokit } = require("@octokit/rest");
 
 const DefaultPRApprovedFormat = `Pull request *{ pull_request.title }* was approved by { review.user.login } :heavy_check_mark:`;
 const DefaultPRChangesRequestedFormat = `Pull request *{ pull_request.title }* was rejected by { review.user.login } :cry:`;
@@ -37,44 +36,39 @@ const notificationCommentMessage = (config) => {
 
 const alreadySentNotification = async (config, octokit, pr) => {
     const notification_body = notificationCommentMessage(config);
-    // const comments = await octokit.request('GET /repos/{repo}/issues/{issue_number}/comments/', {
-    //     repo: config.repo_name,
-    //     issue_number: pr.number,
-    //     per_page: 100,
-    //     headers: {
-    //         'X-GitHub-Api-Version': '2022-11-28'
-    //     }
-    // });
-    // for (let i = 0; i < comments.length; ++i) {
-    //     if (comments[i].body === notification_body) {
-    //         return true;
-    //     }
-    // }
+    const url = `https://api.github.com/repos/${config.repo_name}/issues/${pr.number}/comments?per_page=100`;
+    const options = {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/vnd.github+json',
+            'Authorization': `Bearer ${config.github_token}`,
+            'X-GitHub-Api-Version': '2022-11-28',
+        },
+    };
+    const response = await fetch(url, options);
+    const comments = await response.json();
+    for (let i = 0; i < comments.length; ++i) {
+        if (comments[i].body === notification_body) {
+            return true;
+        }
+    }
     return false;
 }
 
-const addCommentThatNotificationSent = async (config, octokit, pr) => {
-    // const url = `https://api.github.com/repos/${config.repo_name}/issues/${pr.number}/comments`;
-    // const options = {
-    //     method: 'POST',
-    //     headers: {
-    //         'Accept': 'application/vnd.github+json',
-    //         'Authorization': `Bearer ${config.github_token}`,
-    //         'X-GitHub-Api-Version': '2022-11-28',
-    //     },
-    //     body: JSON.stringify({
-    //         body: notificationCommentMessage(config),
-    //     }),
-    // };
-    // const response = await fetch(url, options);
-    await octokit.request('POST https://api.github.com/repos/{repo}/issues/{issue_number}/comments', {
-        repo: config.repo_name,
-        issue_number: pr.number,
-        body: notificationCommentMessage(config),
+const addCommentThatNotificationSent = async (config, pr) => {
+    const url = `https://api.github.com/repos/${config.repo_name}/issues/${pr.number}/comments`;
+    const options = {
+        method: 'POST',
         headers: {
-            'X-GitHub-Api-Version': '2022-11-28'
-        }
-    });
+            'Accept': 'application/vnd.github+json',
+            'Authorization': `Bearer ${config.github_token}`,
+            'X-GitHub-Api-Version': '2022-11-28',
+        },
+        body: JSON.stringify({
+            body: notificationCommentMessage(config),
+        }),
+    };
+    const response = await fetch(url, options);
 };
 
 (async () => {
@@ -127,20 +121,20 @@ const addCommentThatNotificationSent = async (config, octokit, pr) => {
                 return
             }
             
-            // if (await alreadySentNotification(config, octokit, pr)) {
-            //     return
-            // } else {
+            if (await alreadySentNotification(config, octokit, pr)) {
+                return
+            } else {
                 await addCommentThatNotificationSent(config, octokit, pr);
-            // }
+            }
 
             message = fillTemplate(payload, config.pr_ready_for_review_format);
         }
 
-        // slack.send({
-        //     text: message,
-        //     channel: '#' + config.channel,
-        //     username: config.username
-        // });
+        slack.send({
+            text: message,
+            channel: '#' + config.channel,
+            username: config.username
+        });
     } catch (error) {
         Core.setFailed(error.message);
     }
