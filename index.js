@@ -35,10 +35,7 @@ const notificationCommentMessage = (config) => {
     return `Notification was sent to the #${config.channel} Slack channel.`;
 };
 
-const doNothingTest = async (config, octokit, pr) => {
-};
-
-async function alreadySentNotification(config, octokit, pr) {
+const alreadySentNotification = async (config, octokit, pr) {
     const notification_body = notificationCommentMessage(config);
     const comments = await octokit.request('GET /repos/{repo}/issues/{issue_number}/comments/', {
         repo: config.repo_name,
@@ -60,7 +57,7 @@ const addCommentThatNotificationSent = async (config, octokit, pr) => {
     await octokit.request('POST /repos/{repo}/issues/{issue_number}/comments', {
         repo: config.repo_name,
         issue_number: pr.number,
-        body: notificationCommentMessagei(config),
+        body: notificationCommentMessage(config),
         headers: {
             'X-GitHub-Api-Version': '2022-11-28'
         }
@@ -117,9 +114,6 @@ const addCommentThatNotificationSent = async (config, octokit, pr) => {
                 return
             }
             
-            const msg = notificationCommentMessage(config);
-            await doNothingTest(config, octokit, pr);
-
             if (await alreadySentNotification(config, octokit, pr)) {
                 return
             } else {
@@ -137,4 +131,4 @@ const addCommentThatNotificationSent = async (config, octokit, pr) => {
     } catch (error) {
         Core.setFailed(error.message);
     }
-})()
+})();
