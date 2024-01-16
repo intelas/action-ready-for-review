@@ -5,5 +5,5 @@ branding:
   icon: message-square
   
 runs:
-  using: 'node18'
+  using: 'node20'
   main: 'index.js'
