@@ -34,7 +34,7 @@ const notificationCommentMessage = (config) => {
     return `Notification was sent to the #${config.channel} Slack channel.`;
 };
 
-const alreadySentNotification = async (config, octokit, pr) => {
+const alreadySentNotification = async (config, pr) => {
     const notification_body = notificationCommentMessage(config);
     const url = `https://api.github.com/repos/${config.repo_name}/issues/${pr.number}/comments?per_page=100`;
     const options = {
@@ -117,10 +117,10 @@ const addCommentThatNotificationSent = async (config, pr) => {
                 return
             }
             
-            if (await alreadySentNotification(config, octokit, pr)) {
+            if (await alreadySentNotification(config, pr)) {
                 return
             } else {
-                await addCommentThatNotificationSent(config, octokit, pr);
+                await addCommentThatNotificationSent(config, pr);
             }
 
             message = fillTemplate(payload, config.pr_ready_for_review_format);
