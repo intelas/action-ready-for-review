@@ -35,6 +35,9 @@ const notificationCommentMessage = (config) => {
     return `Notification was sent to the #${config.channel} Slack channel.`;
 };
 
+const doNothingTest = async (config, octokit, pr) => {
+};
+
 async function alreadySentNotification(config, octokit, pr) {
     const notification_body = notificationCommentMessage(config);
     const comments = await octokit.request('GET /repos/{repo}/issues/{issue_number}/comments/', {
@@ -112,6 +115,9 @@ try {
         if (pr.draft && config.ignoreDrafts === true) {
             return
         }
+        
+        const msg = notificationCommentMessage(config);
+        await doNothingTest(config, octokit, pr);
 
         if (await alreadySentNotification(config, octokit, pr)) {
             return
