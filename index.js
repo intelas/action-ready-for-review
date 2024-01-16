@@ -54,7 +54,9 @@ try {
     const pr = payload.pull_request;
     let message;
 
-    if (!review && payload.action !== "ready_for_review" && payload.action !== "opened") {
+    // We don't need to check this at all, because we call slack-notify action only after all checks in our CI.
+    // Feel free to delete this condition in the future.
+    if (!review && !["ready_for_review", "opened", "synchronize", "reopened"].includes(payload.action)) {
         return
     }
 
