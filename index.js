@@ -54,14 +54,14 @@ const alreadySentNotification = async (config, octokit, pr) => {
 }
 
 const addCommentThatNotificationSent = async (config, octokit, pr) => {
-    // await octokit.request('POST /repos/{repo}/issues/{issue_number}/comments', {
-    //     repo: config.repo_name,
-    //     issue_number: pr.number,
-    //     body: notificationCommentMessage(config),
-    //     headers: {
-    //         'X-GitHub-Api-Version': '2022-11-28'
-    //     }
-    // });
+    await octokit.request('POST /repos/{repo}/issues/{issue_number}/comments', {
+        repo: config.repo_name,
+        issue_number: pr.number,
+        body: notificationCommentMessage(config),
+        headers: {
+            'X-GitHub-Api-Version': '2022-11-28'
+        }
+    });
 };
 
 (async () => {
@@ -117,7 +117,7 @@ const addCommentThatNotificationSent = async (config, octokit, pr) => {
             // if (await alreadySentNotification(config, octokit, pr)) {
             //     return
             // } else {
-            //     await addCommentThatNotificationSent(config, octokit, pr);
+                await addCommentThatNotificationSent(config, octokit, pr);
             // }
 
             message = fillTemplate(payload, config.pr_ready_for_review_format);
