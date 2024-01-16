@@ -54,27 +54,27 @@ const alreadySentNotification = async (config, octokit, pr) => {
 }
 
 const addCommentThatNotificationSent = async (config, octokit, pr) => {
-    const url = `https://api.github.com/repos/${config.repo_name}/issues/${pr.number}/comments`;
-    const options = {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/vnd.github+json',
-            'Authorization': `Bearer ${config.github_token}`,
-            'X-GitHub-Api-Version': '2022-11-28',
-        },
-        body: JSON.stringify({
-            body: notificationCommentMessage(config),
-        }),
-    };
-    const response = await fetch(url, options);
-    // await octokit.request('POST /repos/{repo}/issues/{issue_number}/comments', {
-    //     repo: config.repo_name,
-    //     issue_number: pr.number,
-    //     body: notificationCommentMessage(config),
+    // const url = `https://api.github.com/repos/${config.repo_name}/issues/${pr.number}/comments`;
+    // const options = {
+    //     method: 'POST',
     //     headers: {
-    //         'X-GitHub-Api-Version': '2022-11-28'
-    //     }
-    // });
+    //         'Accept': 'application/vnd.github+json',
+    //         'Authorization': `Bearer ${config.github_token}`,
+    //         'X-GitHub-Api-Version': '2022-11-28',
+    //     },
+    //     body: JSON.stringify({
+    //         body: notificationCommentMessage(config),
+    //     }),
+    // };
+    // const response = await fetch(url, options);
+    await octokit.request('POST https://api.github.com/repos/{repo}/issues/{issue_number}/comments', {
+        repo: config.repo_name,
+        issue_number: pr.number,
+        body: notificationCommentMessage(config),
+        headers: {
+            'X-GitHub-Api-Version': '2022-11-28'
+        }
+    });
 };
 
 (async () => {
