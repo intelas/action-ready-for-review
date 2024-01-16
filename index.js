@@ -33,9 +33,9 @@ const fillTemplate = (payload, template) => {
 
 const notificationCommentMessage = (config) => {
     return `Notification was sent to the #${config.channel} Slack channel.`;
-}
+};
 
-const alreadySentNotification = async (config, oktokit) => {
+const alreadySentNotification = async (config, oktokit, pr) => {
     const notification_body = notificationCommentMessage(config);
     const comments = await octokit.request('GET /repos/{repo}/issues/{issue_number}/comments/', {
         repo: config.repo_name,
