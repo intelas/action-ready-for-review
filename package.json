@@ -20,7 +20,7 @@
   "dependencies": {
     "@actions/core": "^1.2.2",
     "@actions/github": "^2.1.0",
-    "@octokit/core": "^5.0.2",
+    "@octokit/rest": "^20.0.2",
     "node-slack": "0.0.7"
   }
 }

@@ -1,7 +1,7 @@
 const Core = require('@actions/core');
 const Github = require('@actions/github');
 const Slack = require('node-slack');
-const { Octokit } = require("@octokit/core");
+const { Octokit } = require("@octokit/rest");
 
 const DefaultPRApprovedFormat = `Pull request *{ pull_request.title }* was approved by { review.user.login } :heavy_check_mark:`;
 const DefaultPRChangesRequestedFormat = `Pull request *{ pull_request.title }* was rejected by { review.user.login } :cry:`;
