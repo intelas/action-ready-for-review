@@ -1,7 +1,7 @@
 const Core = require('@actions/core');
 const Github = require('@actions/github');
 const Slack = require('node-slack');
-// const { Octokit } = require("@octokit/rest");
+const { Octokit } = require("@octokit/rest");
 
 const DefaultPRApprovedFormat = `Pull request *{ pull_request.title }* was approved by { review.user.login } :heavy_check_mark:`;
 const DefaultPRChangesRequestedFormat = `Pull request *{ pull_request.title }* was rejected by { review.user.login } :cry:`;
@@ -86,9 +86,9 @@ const addCommentThatNotificationSent = async (config, octokit, pr) => {
             Core.setFailed("SLACK_WEBHOOK is not set. Set it with\nenv:\n\tSLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}\n");
         }
 
-        // const octokit = new Octokit({
-        //     auth: config.github_token,
-        // });
+        const octokit = new Octokit({
+            auth: config.github_token,
+        });
 
         const payload = Github.context.payload;
         const review = payload.review;
